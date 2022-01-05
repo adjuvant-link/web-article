@@ -1,11 +1,12 @@
 {
-    "DOMAIN": "https://adjuvant.eth.link",
+    "DOMAIN": "https://adjuvant.link",
     "SUBDIRECTORY": "/",
-    "ONION_ADDRESS": "http://placeholder.onion",
+    "ONION_ADDRESS": "http://en5kq3sxdcnf5cvirydxs5hwpbivosfzu3kxtxvttrsbibaznpk4ljqd.onion",
     "TITLE": "Portraits of Social Good Catalysts",
     "DESCRIPTION": "Lebanon's Chapter",
     "THUMBNAIL_FILEPATH": "thumbnail.jpg",
     "AUTHOR": "Jean-Romain Roy",
     "AUTHOR_URL": "https://jeanromainroy.com/",
-    "EMAIL": "roy.jeanromain@gmail.com"
+    "EMAIL": "roy.jeanromain@gmail.com",
+    "ENS": "adjuvant.eth"
 }

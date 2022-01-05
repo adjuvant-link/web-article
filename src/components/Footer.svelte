@@ -8,7 +8,7 @@
 
 <div class="footer-up">
     <hr>
-    <p class="italic" style="margin-top: 8px; margin-bottom: 8px;">For any inquiries contact us at <a href='mailto:{EMAIL}' target='_blank'>{EMAIL}</a></p>
+    <p class="italic" style="margin-top: 8px; margin-bottom: 8px;">For any inquiries contact me at <a href='mailto:{EMAIL}' target='_blank'>{EMAIL}</a></p>
     <p style="margin-bottom: 8px;"><a href='/assets/files/pgp.pub.txt' target='_blank'>PGP Public Key</a></p>
 </div>
 
