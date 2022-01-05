@@ -12,9 +12,23 @@ Guiding values for the project:
     - Sustainability
 
 
+
 ## Hosting
 
-### Traditional + TOR
+### IPFS
+
+1. Setup a MetaMask wallet, fund it with Ether
+
+2. "adjuvant.eth" was purchased from the [Ethereum Name Service](https://app.ens.domains/). 
+
+3. The "registrant", "controller", and "resolver" records of the domain were configured. 
+
+4. Using [Fleek](https://app.fleek.co/#/), the static files of the website were uploaded to [IPFS](https://ipfs.io/) (here is the [tutorial](https://medium.com/the-ethereum-name-service/cloudflare-and-fleek-make-ens-ipfs-site-deployment-as-easy-as-ever-262c990a7514)).
+
+5. The "content" record of the domain was set to point to the IPNS hosting of the website (more info can be found [here](https://eth.link/)).
+
+
+### Dedicated Server + TOR
 
 1. The "adjuvant.link" domain was purchased
 
@@ -43,17 +57,67 @@ Guiding values for the project:
         "ONION_ADDRESS": "http://<your-onion-service-address>.onion"
 
 
-### IPFS
+### S3 Bucket
 
-1. Setup a MetaMask wallet, fund it with Ether
+Here are the instructions to host the website inside an AWS S3 bucket.
 
-2. "adjuvant.eth" was purchased from the [Ethereum Name Service](https://app.ens.domains/). 
+1. Go to your [AWS S3 console](https://s3.console.aws.amazon.com/)
 
-3. The "registrant", "controller", and "resolver" records of the domain were configured. 
+2. Click on "Create bucket", set the name and region, and make sure "Block all public access" is unchecked. Then, click on "Create Bucket".
 
-4. Using [Fleek](https://app.fleek.co/#/), the static files of the website were uploaded to [IPFS](https://ipfs.io/) (here is the [tutorial](https://medium.com/the-ethereum-name-service/cloudflare-and-fleek-make-ens-ipfs-site-deployment-as-easy-as-ever-262c990a7514)).
+3. Click on your bucket and then click on the "Permissions" tab
 
-5. The "content" record of the domain was set to point to the IPNS hosting of the website (more info can be found [here](https://eth.link/)).
+4. Edit "Bucket policy" and paste the following policy while making sure to replace {bucket_name} with the name of your bucket:
+
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "PublicRead",
+                    "Effect": "Allow",
+                    "Principal": "*",
+                    "Action": "s3:GetObject",
+                    "Resource": "arn:aws:s3:::{bucket_name}/*"
+                }
+            ]
+        }
+
+5. Click on "Save changes"
+
+6. Click on the "Objects" tab and then click on "Upload"
+
+7. Drag and drop all the content from the [public](./public/) folder of this repo and then click on "Upload"
+
+8. Click on the "Properties" tab and scroll down to the "Static website hosting" section. Click on "Edit"
+
+9. Enable Static website hosting, and set "index.html" as the Index document. Click on "Save changes"
+
+10. Make sure everything works by clicking on the Bucket website endpoint
+
+
+
+## PGP key
+
+Viewers might want to reach out by email. They can encrypt their message using the PGP public key displayed at 
+the bottom of the page. 
+
+Many tools are available to generate a new public/private key pair, encrypt a message using the public key, and 
+decrypt the message using the private key. 
+
+For testing purposes, you can use the online [pgptool](https://pgptool.org/). 
+
+To update copy the public key [here](./public/files/pgp.pub.txt).
+
+
+
+## Development
+
+### Linting
+
+To lint the src/ files use eslint
+
+        npx eslint src/* --fix
+
 
 
 ## Author
