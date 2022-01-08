@@ -17,9 +17,7 @@
             <!-- <p></p> -->
         </div>
 
-        <!-- Title -->
-        <div class="spacing-before-title"></div>
-
+        <!-- Title Box -->
         <div class="top-title-container">
             <div class="vert-cell"></div>
             <div class="vert-cell">
@@ -33,9 +31,7 @@
             </div>
             <div class="vert-cell"></div>
         </div>
-
-        <div class="spacing-before-report"></div>
-
+        
     </section>
 
 
@@ -51,10 +47,8 @@
             <p class="title">Adjuvant</p>
 
             <p>
-                a substance which enhances the body's immune response to a toxin or other foreign substance.
-            </p>
-            <p>
-                from Latin adjuvare, ad- ‘towards’ + juvare to ‘help’.
+                a substance which enhances the body's immune response to a toxin or other foreign substance. 
+                Latin adjuvare, ad- ‘towards’ + juvare to ‘help’.
             </p>
 
             <br><br>
@@ -142,21 +136,15 @@
 
 
     /* Title */
-    .spacing-before-title {
-        height: 30vh;
-    }
-
-    .spacing-before-report {
-        height: 40vh;
-    }
-
     .top-title-container {
+        position: absolute;
+        right: 4vw;
+        bottom: 4vw;
+        height: 33vh;
         z-index: 3;
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        margin: 0px auto;
-        height: 30vh;
         padding: 8px 32px;
         max-width: 40vw;
         background-color: var(--black);
@@ -180,6 +168,7 @@
         margin-bottom: 8px;
         font-weight: var(--font-weight-normal);
         font-size: var(--font-size-very-large);
+        font-family: 'Special Elite', cursive;
     }
 
     .top-subtitle {
@@ -191,14 +180,12 @@
 
     /* styles for browsers smaller than 600px; */
     @media (max-width : 599px) {
-        .spacing-before-title {
-            height: 17vh;
-        }
-        .spacing-before-report {
-            height: 17vh;
-        }   
         .top-title-container {
             height: 66vh;
+            top: 17vh;
+            left: 0px;
+            right: 0px;
+            margin: 0px auto;
         }
         .top-title {
             font-size: var(--font-size-large);

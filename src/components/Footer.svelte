@@ -3,13 +3,19 @@
     // load constants
     import { EMAIL } from '../constants.json';
 
+    // load libs
+    import { isMobile } from '../libs/system.js';
+
 </script>
 
 
 <div class="footer-up">
     <hr>
-    <p class="italic" style="margin-top: 8px; margin-bottom: 8px;">For any inquiries contact me at <a href='mailto:{EMAIL}' target='_blank'>{EMAIL}</a></p>
-    <p style="margin-bottom: 8px;"><a href='/assets/files/pgp.pub.txt' target='_blank'>PGP Public Key</a></p>
+    <p style="margin-top: 8px; margin-bottom: 8px;">For any inquiries contact me at <a href='mailto:{EMAIL}' target='_blank'>{EMAIL}</a></p>
+
+    {#if !isMobile()}
+        <p style="margin-bottom: 8px;"><a href='/assets/files/pgp.pub.txt' target='_blank'>PGP Public Key</a></p>
+    {/if}
 </div>
 
 
@@ -39,6 +45,13 @@
     }
 
     p {
+        margin: 0px 0px 0px;
+        padding: 0px;
+        font-size: var(--font-size-very-small);
+        font-weight: var(--font-weight-light);
+    }
+
+    a {
         margin: 0px 0px 0px;
         padding: 0px;
         font-size: var(--font-size-very-small);

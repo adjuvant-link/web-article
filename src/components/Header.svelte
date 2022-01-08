@@ -1,10 +1,13 @@
 <script>
 
     // load constants from json file
-    import { TITLE, SUBDIRECTORY } from '../constants.json';
+    import { TITLE, SUBDIRECTORY, AUTHOR_URL } from '../constants.json';
 
     // load libs
     import { isMobile } from '../libs/system.js';
+
+    // to set if we want the left icon
+    const ICON_ON = false;
 
 </script>
 
@@ -12,17 +15,17 @@
 <div class="header">
     {#if isMobile()}
         <div class="center-container">
-            <div style="left: 16px; cursor: pointer; z-index: 5;" on:click={() => window.open("https://www.charitableanalytics.org/", '_blank')}>
-                <img id="logo" alt="logo" src="{SUBDIRECTORY}assets/images/favicon.png">
-            </div>
-            <div style="right: 16px;">
+            <div style="left: 0px; right: 0px; text-align: center;">
+                <p>{TITLE}</p>
             </div>
         </div>
     {:else}
         <div class="center-container">
-            <div style="left: 16px; cursor: pointer; z-index: 5;" on:click={() => window.open("https://www.charitableanalytics.org/", '_blank')}>
-                <img id="logo" alt="logo" src="{SUBDIRECTORY}assets/images/favicon.png">
-            </div>
+            {#if ICON_ON}
+                <div style="left: 16px; cursor: pointer; z-index: 5;" on:click={() => window.open(AUTHOR_URL, '_blank')}>
+                    <img id="logo" alt="logo" src="{SUBDIRECTORY}assets/images/favicon.png">
+                </div>
+            {/if}
             <div style="left: 0px; right: 0px; text-align: center;">
                 <p>{TITLE}</p>
             </div>

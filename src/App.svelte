@@ -64,12 +64,17 @@
 
 <style>
 
-
     /* --- Fonts --- */
     @font-face {
-        font-family: 'Elegant Typewriter';
-        src: url('/assets/fonts/Elegant_Typewriter/ELEGANT-TYPEWRITER-Light.ttf') format('truetype');
+        font-family: 'IM Fell Double Pica';
+        src: url('/assets/fonts/IM_Fell_Double_Pica/IMFellDoublePica-Regular.ttf') format('truetype');
     }
+
+    @font-face {
+        font-family: 'Special Elite';
+        src: url('/assets/fonts/Special_Elite/SpecialElite-Regular.ttf') format('truetype');
+    }
+
 
     /* --- CSS variables --- */
     :global(:root) {
@@ -96,7 +101,7 @@
     /* --- General elements --- */    
     :global(body) {
         background-color: var(--black);
-        font-family: 'Elegant Typewriter';
+        font-family: 'IM Fell Double Pica', sans-serif;
         margin: 0px;
         padding: 0px;
     }
@@ -110,12 +115,18 @@
         color: var(--white);
         padding: 0px;
         margin: 0px;
+        letter-spacing: 0.05em;
+        word-spacing: 0.2em;
+        line-height: 1.3em;
     }
 
     :global(a){
         color: var(--white);
         padding: 0px;
         margin: 0px;
+        letter-spacing: 0.05em;
+        word-spacing: 0.2em;
+        line-height: 1.3em;
     }
 
 
@@ -126,6 +137,7 @@
         font-weight: var(--font-weight-bold);
         font-size: var(--font-size-very-large);
         max-width: var(--max-width);
+        font-family: 'Special Elite', cursive;
     }
 
     :global(.subtitle) {
