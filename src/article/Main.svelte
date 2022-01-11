@@ -3,6 +3,48 @@
     // load constants
     import { TITLE, DESCRIPTION, SUBDIRECTORY, AUTHOR, AUTHOR_URL } from '../constants.json';
 
+    // slides
+    const slides = [
+        {
+            'alt': 'slide 1 - background',
+            'src': `${SUBDIRECTORY}assets/slides/1.svg`
+        },
+        {
+            'alt': 'slide 2 - background',
+            'src': `${SUBDIRECTORY}assets/slides/2.svg`
+        },
+        {
+            'alt': 'slide 3 - problem statement',
+            'src': `${SUBDIRECTORY}assets/slides/3.svg`
+        },
+        {
+            'alt': 'slide 4 - problem statement',
+            'src': `${SUBDIRECTORY}assets/slides/4.svg`
+        },
+        {
+            'alt': 'slide 5 - solution',
+            'src': `${SUBDIRECTORY}assets/slides/5.svg`
+        },
+        {
+            'alt': 'slide 6 - functional requirements',
+            'src': `${SUBDIRECTORY}assets/slides/6.svg`
+        },
+        {
+            'alt': 'slide 7 - interoperable',
+            'src': `${SUBDIRECTORY}assets/slides/7.svg`
+        },
+        {
+            'alt': 'slide 8 - how',
+            'src': `${SUBDIRECTORY}assets/slides/8.svg`
+        },
+        {
+            'alt': 'slide 9 - how',
+            'src': `${SUBDIRECTORY}assets/slides/9.svg`
+        },
+    ]
+
+
+
 </script>
 
 
@@ -35,6 +77,16 @@
     </section>
 
 
+    <!-- Slides -->
+    {#each slides as slide}
+        <section>
+            <div class="slide-container">
+                <img alt={slide['alt']} src={slide['src']}/>
+            </div>
+        </section>
+    {/each}
+
+
     <!-- Slide #1 -->
     <section>
 
@@ -44,12 +96,24 @@
 
         <div class="text-container">
 
-            <p class="title">Adjuvant</p>
+            <p class="title">Portraits of Social Good Catalysts</p>
+            <p class="subtitle">Lebanon's Chapter</p>
 
-            <p>
+            <!-- <p>
                 a substance which enhances the body's immune response to a toxin or other foreign substance. 
                 Latin adjuvare, ad- ‘towards’ + juvare to ‘help’.
-            </p>
+            </p> -->
+
+            <div class="container">
+                <div>
+                    <a class="donate-with-crypto _mbutton"
+                        href="https://commerce.coinbase.com/checkout/1ec0654b-332a-486f-ae72-64952ebab05e">
+                        Donate with Crypto
+                    </a>
+                    <script src="https://commerce.coinbase.com/v1/checkout.js?version=201807"></script>
+                </div>
+            </div>
+
 
             <br><br>
         </div>
@@ -57,30 +121,36 @@
     </section>
 
 
-    <!-- Slide #2 -->
-    <section>
-
+    <!-- Slide Template -->
+    <!-- <section>
         <div class="img-container">
             <img alt="paper background" src="{SUBDIRECTORY}assets/images/paper-texture.jpg"/>
         </div>
-
         <div class="text-container">
-
-            <p>
-
-            </p>
-
             <br><br>
         </div>
-
-    </section>
-
+    </section> -->
 
 </div>
 
 
 
 <style>
+
+    /* ----- Overriding Coinbase's Donate Button Style ----- */
+    ._mbutton {
+        background: var(--main-color) !important;
+    }
+
+    ._mbutton:hover { 
+        background: var(--main-color-dark) !important;
+    }
+    /* ---------------------------------- */
+
+    .container {
+        text-align: center;
+        margin: 32px;
+    }
 
     .scroll-container {
         height: 100vh;
@@ -192,6 +262,22 @@
         }
     }
 
+    /* Slides */
+    .slide-container {
+        position: absolute;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .slide-container img {
+        margin: auto;
+        max-width: 100vw;
+        max-height: 84vh;
+    }
 
     /* Slides */
     .img-container {

@@ -1,7 +1,7 @@
 <script>
 
     // load constants from json file
-    import { TITLE, SUBDIRECTORY, AUTHOR_URL } from '../constants.json';
+    import { TITLE, DESCRIPTION, SUBDIRECTORY, AUTHOR_URL } from '../constants.json';
 
     // load libs
     import { isMobile } from '../libs/system.js';
@@ -16,7 +16,7 @@
     {#if isMobile()}
         <div class="center-container">
             <div style="left: 0px; right: 0px; text-align: center;">
-                <p>{TITLE}</p>
+                <p>{DESCRIPTION}</p>
             </div>
         </div>
     {:else}
@@ -27,7 +27,7 @@
                 </div>
             {/if}
             <div style="left: 0px; right: 0px; text-align: center;">
-                <p>{TITLE}</p>
+                <p>{DESCRIPTION}</p>
             </div>
             <div style="right: 16px;">
             </div>

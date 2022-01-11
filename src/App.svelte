@@ -4,7 +4,7 @@
     import { onMount } from 'svelte';
 
     // load constants
-    import { TITLE } from './constants.json';
+    import { TITLE, DESCRIPTION } from './constants.json';
 
     // import components
     import Header from './components/Header.svelte';
@@ -83,6 +83,7 @@
         --white: #eee;
         --white-dark: #999;
         --main-color: #aa0000;
+        --main-color-dark: #7e0101;
         --header-height: 8vh;
         --footer-height: 8vh;
         --font-size-very-very-very-small: 0.65em;
@@ -91,7 +92,7 @@
         --font-size-small: 1.0em;
         --font-size-normal: 1.3em;
         --font-size-large: 1.8em;
-        --font-size-very-large: 2em;
+        --font-size-very-large: 2.5em;
         --font-weight-bold: 600;
         --font-weight-normal: 400;
         --font-weight-light: 200;
@@ -122,19 +123,16 @@
 
     :global(a){
         color: var(--white);
-        padding: 0px;
-        margin: 0px;
         letter-spacing: 0.05em;
         word-spacing: 0.2em;
         line-height: 1.3em;
     }
 
-
     /* Text */
     :global(.title) {
         text-align: left;
-        margin: 0em auto 0.5em;
-        font-weight: var(--font-weight-bold);
+        margin: 0px;
+        margin-bottom: 8px;
         font-size: var(--font-size-very-large);
         max-width: var(--max-width);
         font-family: 'Special Elite', cursive;
@@ -142,16 +140,15 @@
 
     :global(.subtitle) {
         text-align: left;
-        margin: 1.0em auto 0.5em;
-        font-weight: var(--font-weight-bold);
+        margin: 0px;
+        margin-bottom: 8px;
         font-size: var(--font-size-large);
         max-width: var(--max-width);
     }
 
     :global(.subsubtitle) {
         text-align: left;
-        margin: 1.0em auto 0.5em;
-        font-weight: var(--font-weight-bold);
+        margin: 0px;
         font-size: var(--font-size-normal);
         max-width: var(--max-width);
     }

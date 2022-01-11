@@ -12,10 +12,25 @@ Guiding values for the project:
     - Sustainability
 
 
+## Receiving donations
+
+### Crypto 
+
+Option #1: Simply put your BTC & ETH address under the story (Native SegWit)
+
+Option #2: If you want a GUI, [Coinbase Commerce](https://commerce.coinbase.com/) offers payment button that can be easily embedded. (Pay to Script Hash)
+
+Option #3: Bitpay
+
+### Fiat
+
+
 
 ## Hosting
 
 ### IPFS
+
+IPFS content addressing enables you to store files off-chain and put immutable, permanent links in transactions — timestamping and securing content without having to put the data itself on-chain.
 
 1. Setup a MetaMask wallet, fund it with Ether
 
