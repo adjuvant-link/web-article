@@ -143,7 +143,7 @@ export function request_POST (url, payload = {}) {
     })
 }
 
-export async function getRequestWrapper (endpoint, lang, type = 'json') {
+export async function getRequestWrapper (endpoint, lang = 'eng', type = 'json') {
     // init returned var
     let res
 

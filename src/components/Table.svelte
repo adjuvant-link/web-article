@@ -187,7 +187,7 @@
 
 </script>
 
-<br>
+
 {#if _headers !== null }
     <!-- Headers -->
     <div class="table-headers" id="{table_id_headers}" >
@@ -220,11 +220,6 @@
             {/each}
         </table>
     </div>
-
-    <!-- Download -->
-    <div class="download">
-        <img alt="download" on:click={() => { download() }} src='{SUBDIRECTORY}assets/images/download.png' width=30 height=30/>
-    </div>
 {/if}
 
 
@@ -250,23 +245,6 @@
         padding-right: 8px;
     }
 
-    div.download {
-        margin: auto;
-        width: 100%;
-        max-width: var(--max-width-small);
-    }
-
-    img {
-        padding-top: 4px;
-        opacity: 0.8;
-        cursor: pointer;
-        float: right;
-    }
-
-    img:hover {
-        opacity: 0.6;
-    }
-
     table, th {
         border-collapse: collapse;
         table-layout: fixed;
@@ -284,7 +262,7 @@
         padding: 8px;
         overflow: hidden;
         word-wrap:break-word;
-        background-color: var(--white);
+        background-color: transparent;
         line-height: var(--line-height-small);
         text-align: left;
     }
@@ -296,15 +274,16 @@
     .table-headers {
         z-index: 900;
         padding-bottom: 8px;
-        background-color: var(--white);
+        background-color: transparent;
         border: 1px solid var(--black);
     }
 
     .table-values {
         z-index: 800;
-        background-color: var(--white);
+        background-color: transparent;
         border: 1px solid var(--black);
         padding-bottom: 4px;
+        margin-bottom: 8px;
     }
 
     .value {
