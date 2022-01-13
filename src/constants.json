@@ -8,5 +8,6 @@
     "AUTHOR": "Jean-Romain Roy",
     "AUTHOR_URL": "https://jeanromainroy.com/",
     "EMAIL": "roy.jeanromain@gmail.com",
-    "ENS": "adjuvant.eth"
+    "ENS": "adjuvant.eth",
+    "BTC_REFRESH_IN_SEC": 30
 }

@@ -15,29 +15,21 @@
 <style>
 
     .image-container {
-        margin: 32px auto;
+        margin: 8px auto;
         text-align: center;
     }
 
     img {
-        max-width: var(--max-width-small);
-        height: auto;
+        max-width: 40vw;
+        max-height: 40vh;
         margin: 0px;
-        padding: 2px;
-        border: 1px solid var(--white);
+        border: 1px solid var(--black);
     }
 
     p {
         font-size: var(--font-size-very-very-small);
         text-decoration: underline;
-    }
-
-
-    /* styles for browsers smaller than 600px; */
-    @media (max-width : 599px) {
-        img {
-            max-width: var(--max-width);
-        }
+        color: var(--black);
     }
 
 </style>

@@ -25,53 +25,98 @@ export async function btc_usd_exchange_rate(){
     return usd;
 }
 
-export async function btc_addr_lookup(btc_addr) {
+export async function btc_addr_lookup(btc_addresses) {
 
-    // build url
-    const url = btc_addr_enpoint(btc_addr);
-
-    // send GET request
-    const result = await getRequestWrapper(url);
-
-    // init 
+    // init returned datum
     let datum = {};
 
-    try {
+    // go through addresses
+    for(const btc_addr of btc_addresses){
+        
         // set
-        datum['balance'] = (+result['balance'])/100000000.0;
+        datum[btc_addr] = {};
+        
+        // build url
+        const url = btc_addr_enpoint(btc_addr);
 
-        // clean
-        datum['txrefs'] = result['txrefs'].map(tx => {
-            return {
-                'value': (+tx['value'])/100000000.0,
-                'tx_hash': tx['tx_hash'],
-                'spent': tx['spent']
+        // send GET request
+        const result = await getRequestWrapper(url);
+
+        // extrat values from payload
+        try {
+
+            // grab data
+            const { balance, final_balance, txrefs, unconfirmed_txrefs } = result;
+
+            // init transactions
+            datum[btc_addr]['txrefs'] = [];
+
+            // set balance
+            datum[btc_addr]['balance'] = final_balance !== undefined ? (+final_balance)/100000000.0 : (+balance)/100000000.0;
+
+            // push confirmed transactions    
+            if(txrefs !== undefined && txrefs !== null 
+                && Array.isArray(txrefs) && txrefs.length > 0){    
+
+                txrefs.forEach(tx => {
+                    datum[btc_addr]['txrefs'].push({
+                        'value': (+tx['value'])/100000000.0,
+                        'tx_hash': tx['tx_hash'],
+                        'spent': tx['spent'],
+                        'time': new Date(tx['confirmed']),
+                        'confirmed': true
+                    })
+                });
             }
-        });
 
-    }catch(err) {
-        console.error(`could not get info for addr ${btc_addr}`)
+            // push unconfirmed transactions
+            if(unconfirmed_txrefs !== undefined && unconfirmed_txrefs !== null 
+                && Array.isArray(unconfirmed_txrefs) && unconfirmed_txrefs.length > 0){
+                
+                    unconfirmed_txrefs.forEach(tx => {
+                    datum[btc_addr]['txrefs'].push({
+                        'value': (+tx['value'])/100000000.0,
+                        'tx_hash': tx['tx_hash'],
+                        'spent': tx['spent'],
+                        'time': new Date(tx['received']),
+                        'confirmed': false
+                    })
+                });
+            }
+            
+
+            // sort transactions in descending chronological order
+            datum[btc_addr]['txrefs'].sort((b, a) => a['time'] - b['time']);
+
+        }catch(err) {
+            console.error(err);
+            console.error(`could not get info for addr ${btc_addr}`)
+        }
     }
 
     return datum;
 }
 
-export async function btc_addr_balance_lookup(btc_addr) {
+export async function btc_addr_balance_lookup(btc_addresses) {
 
-    // build url
-    const url = btc_addr_balance_enpoint(btc_addr);
-
-    // send GET request
-    const result = await getRequestWrapper(url)
-
-    // extract the balance
+    // init the balance
     let balance = 0.0;
 
-    try {
-        balance = (+result['balance'])/100000000.0;
-    }catch(err) {
-        console.error(`could not extract balance for addr ${btc_addr}`);
-    }
+    // go through addresses
+    for(const btc_addr of btc_addresses){
+
+        // build url
+        const url = btc_addr_balance_enpoint(btc_addr);
+
+        // send GET request
+        const result = await getRequestWrapper(url)
+
+        try {
+            balance = balance + (+result['balance'])/100000000.0;
+        }catch(err) {
+            console.error(`could not extract balance for addr ${btc_addr}`);
+        }
+    }   
 
     return balance;
 }

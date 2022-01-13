@@ -1,40 +1,100 @@
 <script>
 
-    // load constants
-    import { SUBDIRECTORY } from '../constants.json';
+    // properties
+    export let wallet;
 
-    // import btc lib
-    import { btc_usd_exchange_rate, btc_addr_lookup, btc_addr_balance_lookup } from '../libs/btc.js';
+    // load constants
+    import { SUBDIRECTORY, BTC_REFRESH_IN_SEC } from '../constants.json';
 
     // ui lib
     import { onMount } from 'svelte';
 
+    // import btc lib
+    import { btc_usd_exchange_rate, btc_addr_lookup } from '../libs/btc.js';
+
     // import components
     import Table from '../components/Table.svelte';
+    import ImageContainer from '../components/ImageContainer.svelte';
 
-    // btc addresses
-    const addr_1 = 'bc1q2hj8fvt5w7ytjrwqpuz2daye05mdhuen4jvfk5';
-    let balance_1 = 0.0;
-    let donations_1 = [];
-    
+    // init process variables
+    let usd_exchange_rate = 0.0;
+    let total_balance_in_btc = 0.0;
+    let total_balance_in_usd = 0.0;
+    let donations = [];    
 
-    // load the btc info
-    onMount(async () => {
+    function convert_to_usd(btc_value){
+        return Math.round(100.0 * usd_exchange_rate * btc_value)/100.0;
+    }
+
+
+    async function get_donations_ledger(){
+
+        // reset
+        total_balance_in_btc = 0.0;
 
         // get BTC to USD rate
-        const usd_exchange_rate = await btc_usd_exchange_rate();
+        usd_exchange_rate = await btc_usd_exchange_rate();
 
-        // get addr info
-        const btc_addr_info_1 = await btc_addr_lookup(addr_1);
-        donations_1 = btc_addr_info_1['txrefs'].map(tx => [
-            tx['tx_hash'], 
-            (Math.round(100.0 * usd_exchange_rate * tx['value'] )/100.0).toLocaleString(),
-            tx['spent']
-        ] );
-        donations_1.unshift(['TX Hash', 'Value (USD)', 'Spent'])
+        // get addresses info
+        const btc_addr_info = await btc_addr_lookup(wallet['addresses']);
 
-        // compute balance in usd
-        balance_1 = (Math.round(100.0 * usd_exchange_rate * btc_addr_info_1['balance'])/100.0).toLocaleString();
+        // build the donations table
+        let _donations = [];
+        Object.keys(btc_addr_info).forEach(addr_info => {
+
+            // grab data
+            const { balance, txrefs } = btc_addr_info[addr_info];
+
+            // accumulate balance
+            total_balance_in_btc = total_balance_in_btc + balance;
+
+            // go through transactions
+            txrefs.forEach(tx => {
+
+                // compute value in USD
+                const value = convert_to_usd(+tx['value']);
+
+                // build table row
+                const datum = [
+                    tx['tx_hash'], 
+                    value.toLocaleString(),
+                    tx['spent'] === undefined ? 'N/A' : tx['spent'],
+                    tx['confirmed']
+                ]
+
+                // push to table
+                _donations.push(datum);
+            })
+        })
+
+        // add headers
+        _donations.unshift(['TX Hash', 'Value (USD)', 'Spent', 'Confirmed'])
+
+        // convert total balance
+        total_balance_in_usd = convert_to_usd(total_balance_in_btc).toLocaleString();
+
+        return [total_balance_in_usd, _donations];
+    }
+
+    async function continuous(){
+        console.log(`refreshing info for wallet with id ${wallet['id']}`)
+
+        // run
+        const [balance, _donations] = await get_donations_ledger();   
+
+        // set
+        total_balance_in_usd = balance;
+        donations = _donations;
+
+        // rerun in X seconds
+        setTimeout(async () => {   
+            continuous();
+        }, 1000*BTC_REFRESH_IN_SEC);
+    }
+
+    // load the btc info
+    onMount(() => {
+        continuous();
     })
 
 </script>
@@ -54,8 +114,11 @@
         <div class="row">
             <div class="column-left">
                 <br>
-                <img alt="portrait" src="{SUBDIRECTORY}assets/images/portrait.jpg"/>
-                <p>Chris Levine, claims to show the back of Banksy's head, clad in a hoodie.</p>
+                <ImageContainer 
+                    src="{SUBDIRECTORY}assets/images/portrait.jpg"
+                    caption="Banksy's head, by Chris Levine"
+                />
+                <br>
                 <p class="portrait-description">
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean eleifend, dolor nec scelerisque sagittis, enim felis finibus justo, et faucibus ex metus ut arcu. In ut scelerisque felis. Quisque accumsan sollicitudin nisi eu imperdiet. Proin porttitor ex risus, sed sagittis nisi dapibus eu. Nunc posuere id nibh vitae tincidunt. Quisque mattis sem at ex varius, non elementum nunc vestibulum. Duis at est a velit accumsan tincidunt ac in lectus. Vivamus quis orci vitae turpis vulputate sodales. Nunc nec nunc nulla. Vivamus volutpat massa vitae condimentum laoreet. Ut sit amet lobortis leo. Suspendisse congue, lacus nec facilisis ornare, mi libero dictum dolor, nec aliquet ligula arcu vitae lectus. Ut quis ullamcorper tortor, quis tincidunt enim. Vestibulum nec nisi sapien. Vestibulum mollis in purus at tempor.
                 </p>
@@ -67,8 +130,10 @@
                 <!-- Donations Ledger -->
                 <div class="container">
                     <p class="subsubtitle" style="text-align: center; margin-bottom: 8px;">Donations Ledger</p>
-                    <Table data={donations_1}/>
-                    <p>Total: {balance_1} USD</p>
+                    {#if donations !== undefined && donations !== null && Array.isArray(donations) && donations.length > 1 }
+                        <Table data={donations}/>
+                        <p>Total: {total_balance_in_usd} USD</p>
+                    {/if}
                 </div>
 
                 <!-- BTC Address -->
@@ -81,7 +146,10 @@
                         <script src="https://commerce.coinbase.com/v1/checkout.js?version=201807"></script>
                     </div>
                     <br>
-                    <p class="btc-addr">BTC: {addr_1}</p>
+                    <p>BTC</p>
+                    {#each wallet['addresses'] as addr}
+                        <p class="btc-addr">{addr}</p>                    
+                    {/each}
                 </div>  
 
             </div>
@@ -150,12 +218,6 @@
         text-align: center;
         overflow-y: scroll;
     }
-    
-    .column-left img {
-        max-width: 30vw;
-        max-height: 50vh;
-        border: 1px solid var(--black);
-    }
 
     .column-right {
         flex: 40%;
@@ -166,10 +228,10 @@
     }
 
     .portrait-description {
-        margin-top: 8px;
+        margin: 0px auto;
         overflow: scroll; 
-        height: 72px;
-        border: 1px solid var(--black);
+        max-height: 8vh;
+        max-width: 40vw;
         text-align: justify;
     }
 

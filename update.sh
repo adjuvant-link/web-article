@@ -17,6 +17,7 @@ npm run build
 # scp ./public/assets/images/* "$DEST/assets/images/"
 # scp ./public/thumbnail.jpg "$DEST/"
 # scp ./public/assets/slides/* "$DEST/assets/slides/"
+scp ./public/assets/files/* "$DEST/assets/files/"
 
 # light copy - only dynamic files
 scp ./public/bundle.* "$DEST/"

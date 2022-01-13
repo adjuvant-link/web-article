@@ -13,15 +13,20 @@
     // import Article
     import Background from './article/Background.svelte';
     import Cover from './article/Cover.svelte';
-    import Portraits from './article/Portraits.svelte';
+    import Portrait from './article/Portrait.svelte';
     import Slides from './article/Slides.svelte';
+
+    // load http lib
+    import { getRequestWrapper } from './libs/http';
 
     // init variables
     let _scrollTop = 0;
     let _screenHeight = 0;
     let hide_cover = false
+    let ready = false;
+    let wallets = null;
 
-    onMount(() => {
+    onMount(async () => {
 
         // set screen height
         _screenHeight = window.innerHeight;
@@ -39,6 +44,14 @@
             })
 
         }, 200);
+
+
+        // load wallets
+        wallets = await getRequestWrapper('/assets/files/wallets.json');
+        if (wallets === undefined || wallets === null) { console.error('could not load wallets'); return; };
+
+        // set ready flag to TRUE
+        ready = true;
     })
 
 </script>
@@ -63,7 +76,11 @@
     <Slides/>
 
     <!-- Portraits -->
-    <Portraits/>
+    {#if ready}
+        {#each wallets as wallet}
+            <Portrait wallet={wallet}/>
+        {/each}
+    {/if}
 
 </div>
 
