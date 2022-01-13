@@ -73,7 +73,7 @@
     <Cover/>
 
     <!-- Slides -->
-    <Slides/>
+    <Slides indexes={[1, 2, 3, 4, 5, 6, 7, 8, 9]}/>
 
     <!-- Portraits -->
     {#if ready}
@@ -81,6 +81,10 @@
             <Portrait wallet={wallet}/>
         {/each}
     {/if}
+
+    <!-- Slides -->
+    <!-- <Slides indexes={[11, 12, 13]}/> -->
+    <Slides indexes={[11, 13]}/>
 
 </div>
 
