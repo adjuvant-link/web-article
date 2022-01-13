@@ -112,7 +112,7 @@ export default {
     },
     plugins: [
         svelte({
-            // emitCss: false,
+            emitCss: false,
             compilerOptions: {
                 // enable run-time checks when not in production
                 dev: !production

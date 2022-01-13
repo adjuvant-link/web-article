@@ -3,11 +3,11 @@
     "SUBDIRECTORY": "/",
     "ONION_ADDRESS": "http://en5kq3sxdcnf5cvirydxs5hwpbivosfzu3kxtxvttrsbibaznpk4ljqd.onion",
     "TITLE": "Adjuvant.link",
-    "DESCRIPTION": "Financing of Last-Mile Social Good Catalysts",
+    "DESCRIPTION": "Transparent Financing of Last-Mile Social Good Catalysts",
     "THUMBNAIL_FILEPATH": "thumbnail.jpg",
     "AUTHOR": "Jean-Romain Roy",
     "AUTHOR_URL": "https://jeanromainroy.com/",
     "EMAIL": "roy.jeanromain@gmail.com",
     "ENS": "adjuvant.eth",
-    "BTC_REFRESH_IN_SEC": 30
+    "BTC_REFRESH_IN_SEC": 60
 }

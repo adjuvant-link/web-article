@@ -11,3 +11,7 @@ export function isMobile() {
         console.log("Error in isMobile"); return false;
     }
 }
+
+export function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
