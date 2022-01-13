@@ -42,34 +42,30 @@ function hasCommonElement(arr1, arr2) {
 }
 
 
-async function get_full_transaction_info(tx_hash, btc_addresses){
+async function get_full_transaction(tx_hash){
 
     // init variables
-    let m_inputs = [];
-    let m_outputs = [];
+    let tx;
+    let all_inputs = [];
+    let all_outputs = [];
 
     // --- functions to retrieve inputs & outputs ---
     async function get_transaction_info(_tx_hash){
 
         // send get request
-        const tx_info = await _getRequestWrapper(btc_txs_endpoint(_tx_hash));
+        tx = await _getRequestWrapper(btc_txs_endpoint(_tx_hash));
 
         // grab data
-        const { inputs, outputs, next_inputs, next_outputs } = tx_info;
+        const { inputs, outputs, next_inputs, next_outputs } = tx;
 
-        // filter inputs & outputs
-        const _m_inputs = inputs.filter(input => hasCommonElement(input['addresses'], btc_addresses)).map(({ addresses, output_value }) => { return { addresses, output_value } })
-        const _m_outputs = outputs.filter(output => hasCommonElement(output['addresses'], btc_addresses)).map(({ addresses, value }) => { return { addresses, value } })
-        
-        // push to array
-        if (_m_inputs !== undefined && Array.isArray(_m_inputs) && _m_inputs.length > 0){
-            console.log(`WE HAVE AN INPUT : ${_tx_hash}`);
-            _m_inputs.forEach(d => m_inputs.push(d));
+        // push inputs to array
+        if (inputs !== undefined && Array.isArray(inputs) && inputs.length > 0){
+            inputs.forEach(d => all_inputs.push(d));
         }
 
-        // push to array
-        if (_m_outputs !== undefined && Array.isArray(_m_outputs) && _m_outputs.length > 0){
-            _m_outputs.forEach(d => m_outputs.push(d));
+        // push outputs to array
+        if (outputs !== undefined && Array.isArray(outputs) && outputs.length > 0){
+            outputs.forEach(d => all_outputs.push(d));
         }
 
         return [next_inputs, next_outputs];
@@ -78,17 +74,14 @@ async function get_full_transaction_info(tx_hash, btc_addresses){
     async function get_transaction_info_input(url){
         
         // send get request
-        const tx_info = await _getRequestWrapper(url);
+        const tx_inputs_info = await _getRequestWrapper(url);
 
         // grab data
-        const { inputs, next_inputs } = tx_info;
-
-        // filter inputs
-        const _m_inputs = inputs.filter(input => hasCommonElement(input['addresses'], btc_addresses)).map(({ addresses, output_value }) => { return { addresses, output_value } })
+        const { inputs, next_inputs } = tx_inputs_info;
 
         // push to array
-        if (_m_inputs !== undefined && Array.isArray(_m_inputs) && _m_inputs.length > 0){
-            _m_inputs.forEach(d => m_inputs.push(d));
+        if (inputs !== undefined && Array.isArray(inputs) && inputs.length > 0){
+            inputs.forEach(d => all_inputs.push(d));
         }
 
         return next_inputs;
@@ -97,17 +90,14 @@ async function get_full_transaction_info(tx_hash, btc_addresses){
     async function get_transaction_info_output(url){
         
         // send get request
-        const tx_info = await _getRequestWrapper(url);
+        const tx_outputs_info = await _getRequestWrapper(url);
 
         // grab data
-        const { outputs, next_outputs } = tx_info;
+        const { outputs, next_outputs } = tx_outputs_info;
 
-        // filter outputs
-        const _m_outputs = outputs.filter(output => hasCommonElement(output['addresses'], btc_addresses)).map(({ addresses, output_value }) => { return { addresses, output_value } })
-        
         // push to array
-        if (_m_outputs !== undefined && Array.isArray(_m_outputs) && _m_outputs.length > 0){
-            _m_outputs.forEach(d => m_outputs.push(d));
+        if (outputs !== undefined && Array.isArray(outputs) && outputs.length > 0){
+            outputs.forEach(d => all_outputs.push(d));
         }       
 
         return next_outputs;
@@ -123,6 +113,7 @@ async function get_full_transaction_info(tx_hash, btc_addresses){
         }
         return null;
     }
+
     async function rerun_output(_next_outputs){
         if(typeof(_next_outputs) === 'string' && _next_outputs.length > 0){
             const __next_outputs = await get_transaction_info_output(_next_outputs);
@@ -148,10 +139,12 @@ async function get_full_transaction_info(tx_hash, btc_addresses){
     }
 
 
-    return {
-        'inputs': m_inputs,
-        'outputs': m_outputs
-    }
+    // --- attach the full list of inputs & outputs to the transaction ---
+    tx['inputs'] = all_inputs;
+    tx['outputs'] = all_outputs;
+
+
+    return tx;
 }
 
 
@@ -201,16 +194,45 @@ export async function btc_addresses_lookup(btc_addresses) {
     // ----------------------------------------------------------------------
     // ----------- Get full information about these transactions ------------
     // ----------------------------------------------------------------------
-    let df = {};
+    let txs = {};
     for(const tx_hash of tx_hashes){
-        df[tx_hash] = await get_full_transaction_info(tx_hash, btc_addresses);
+        txs[tx_hash] = await get_full_transaction(tx_hash);
     }    
 
+
+    // --- Filter ---
+    for(const tx_hash of Object.keys(txs)){
+        
+        // grab tx
+        const tx = txs[tx_hash];
+
+        // check if our btc addresses are the input to the transction
+        const btc_is_an_input = tx['inputs'].filter(input => hasCommonElement(input['addresses'], btc_addresses)).length > 0;
+
+        if(btc_is_an_input){
+            console.log("AS INPUT")
+            console.log(tx);
+        }
+    }
 
     // ----------------------------------------------------------------------
     // ----------------------- Build the ledger -----------------------------
     // ----------------------------------------------------------------------
    
+
+    // // --- filter inputs & outputs ---
+    // let m_inputs = all_inputs.filter(input => )
+    // let m_outputs = all_outputs.filter(output => hasCommonElement(output['addresses'], btc_addresses))
+
+    // // --- clean ---
+    // m_inputs = m_inputs.map(({ addresses, output_value }) => { return { addresses, output_value } });
+    // m_outputs = m_outputs.map(({ addresses, value }) => { return { addresses, value } });
+
+
+    // return {
+    //     'inputs': m_inputs,
+    //     'outputs': m_outputs
+    // }
 
     return results;
 }
