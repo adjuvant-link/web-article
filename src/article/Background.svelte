@@ -10,7 +10,7 @@
     const opacity_line = 0.3;
     const opacity_sphere = 0.3;
     const position_spread = 70;
-    const nbr_nodes = 300;
+    const nbr_nodes = 500;
 
     const z_rotation_speed = 0.0005;
     const z_zoom_out_speed = 0.002;
@@ -149,7 +149,7 @@
         function moveCamera(){
             
             // get position of client from top
-            const t = document.querySelector('main').scrollTop
+            const t = document.querySelector('.scroll-container').scrollTop
 
             // // move camera
             camera.position.z = t * z_zoom_out_speed;
@@ -157,7 +157,7 @@
 
         // set on scroll
         setTimeout(() => {
-            const main = document.querySelector('main');
+            const main = document.querySelector('.scroll-container');
             main.addEventListener('scroll', moveCamera)
         }, 200);
     })
@@ -176,6 +176,5 @@
         width: 100%;
         z-index: -1;
     }
-
         
 </style>

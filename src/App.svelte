@@ -4,14 +4,17 @@
     import { onMount } from 'svelte';
 
     // load constants
-    import { TITLE, DESCRIPTION } from './constants.json';
+    import { TITLE } from './constants.json';
 
     // import components
     import Header from './components/Header.svelte';
     import Footer from './components/Footer.svelte';
 
     // import Article
-    import Article from './article/Main.svelte';
+    import Background from './article/Background.svelte';
+    import Cover from './article/Cover.svelte';
+    import Portraits from './article/Portraits.svelte';
+    import Slides from './article/Slides.svelte';
 
     // init variables
     let _scrollTop = 0;
@@ -47,13 +50,22 @@
 <!-- Header -->
 <Header/>
 
-
 <!-- Background (not on mobile) -->
-<!-- <Background/> -->
+<Background/>
 
 
-<!-- Article -->
-<Article/>
+<div class="scroll-container">
+
+    <!-- Cover Page -->
+    <Cover/>
+
+    <!-- Slides -->
+    <Slides/>
+
+    <!-- Portraits -->
+    <Portraits/>
+
+</div>
 
 
 <!-- Footer -->
@@ -107,6 +119,13 @@
         padding: 0px;
     }
 
+    :global(section){
+        height: 100vh;
+        scroll-snap-align: center;
+        position: relative;
+        text-align: center;
+    }
+
     :global(::selection){
         background: var(--main-color);
         color: var(--white);
@@ -151,6 +170,13 @@
         margin: 0px;
         font-size: var(--font-size-normal);
         max-width: var(--max-width);
+    }
+
+    /* sticky scroll container */
+    .scroll-container {
+        height: 100vh;
+        overflow-y: scroll;
+        scroll-snap-type: y mandatory;
     }
 
 </style>
