@@ -1,29 +1,40 @@
 'use strict';
 
-// api information for the bitcoin node provider
-// https://www.blockcypher.com/dev/bitcoin/#address-api
+// --------------- BlockCypher API endpoints ---------------
+// ref: https://www.blockcypher.com/dev/bitcoin/#address-api
 const btc_addr_balance_endpoint = (addr) => `https://api.blockcypher.com/v1/btc/main/addrs/${addr}/balance`;
 const btc_addr_endpoint = (addr) => `https://api.blockcypher.com/v1/btc/main/addrs/${addr}`;
 const btc_txs_endpoint = (txhash) => `https://api.blockcypher.com/v1/btc/main/txs/${txhash}?limit=50`;
+
+
+// --------------- Blockchain Info endpoint ---------------
+// fiat/crypto currencies exchange rate
 const btc_forex_endpoint =  'https://blockchain.info/ticker';
 
-// import http lib
-import { getRequestWrapper } from './http.js';
 
-// import datetime lib
-import { date_to_month_day_year } from './dt.js';
-
+// ------------------- Dependencies -----------------------
 // import system lib
 import { sleep } from './system.js';
 const sleep_time_in_ms = 1000;
 
-// add sleep to get request
+// import http lib
+import { getRequestWrapper } from './http.js';
+
+// API endpoints will block your IP if you send too many requests
+// we add some sleep time
 async function _getRequestWrapper(url){
     await sleep(sleep_time_in_ms);
     return await getRequestWrapper(url);
 }
 
 
+// ---------------- Helper Functions ----------------------
+function hasCommonElement(arr1, arr2) {
+    return arr1.some(item => arr2.includes(item));
+}
+
+
+// -------------------- Functions -------------------------
 export async function btc_usd_exchange_rate(){
 
     // send GET request
@@ -40,17 +51,18 @@ export async function btc_usd_exchange_rate(){
     return usd;
 }
 
-function hasCommonElement(arr1, arr2) {
-    return arr1.some(item => arr2.includes(item));
-}
 
+async function get_full_tx(tx_hash){
+    // a btc transaction can have thousands of inputs & outputs
+    // the api implements pagination to retrieve all of it
+    // this function runs recursively to obtain everything
 
-async function get_full_transaction(tx_hash){
 
     // init variables
     let tx;
     let all_inputs = [];
     let all_outputs = [];
+
 
     // --- functions to retrieve inputs & outputs ---
     async function get_transaction_info(_tx_hash){
@@ -107,8 +119,9 @@ async function get_full_transaction(tx_hash){
         return next_outputs;
     }
 
+
     // --- functions to run in continuous ---
-    async function rerun_input(_next_inputs){
+    async function rerun_inputs(_next_inputs){
         if(typeof(_next_inputs) === 'string' && _next_inputs.length > 0){
             const __next_inputs = await get_transaction_info_input(_next_inputs);
             if(typeof(__next_inputs) === 'string' && __next_inputs.length > 0){
@@ -118,7 +131,7 @@ async function get_full_transaction(tx_hash){
         return null;
     }
 
-    async function rerun_output(_next_outputs){
+    async function rerun_outputs(_next_outputs){
         if(typeof(_next_outputs) === 'string' && _next_outputs.length > 0){
             const __next_outputs = await get_transaction_info_output(_next_outputs);
             if(typeof(__next_outputs) === 'string' && __next_outputs.length > 0){
@@ -131,14 +144,12 @@ async function get_full_transaction(tx_hash){
 
     // --- launch ---
     let [next_inputs, next_outputs] = await get_transaction_info(tx_hash);
-
     while(true){
-        next_inputs = await rerun_input(next_inputs);
+        next_inputs = await rerun_inputs(next_inputs);
         if (next_inputs === null) break;
     }
-
     while(true){
-        next_outputs = await rerun_output(next_inputs);
+        next_outputs = await rerun_outputs(next_inputs);
         if (next_outputs === null) break;
     }
 
@@ -200,62 +211,57 @@ export async function btc_addresses_lookup(btc_addresses) {
     // ----------------------------------------------------------------------
     let txs = {};
     for(const tx_hash of tx_hashes){
-        txs[tx_hash] = await get_full_transaction(tx_hash);
+        txs[tx_hash] = await get_full_tx(tx_hash);
     }    
 
 
     // ----------------------------------------------------------------------
-    // -------------------- Extract transaction values ----------------------
+    // ----- Build a ledger with our transactions' relevant information  ----
     // ----------------------------------------------------------------------
-    let values = [];
+    let ledger = [];
     for(const tx_hash of Object.keys(txs)){
         
         // grab tx
         const tx = txs[tx_hash];
 
-        // grab data
-        const { received } = tx;
-
-        // convert to date
-        const time = new Date(received);
+        // grab the date when the transaction was received by the network
+        const time = new Date(tx['received']);
 
         // get inputs or outputs that mention our btc addresses
         const btc_is_an_input = tx['inputs'].filter(input => hasCommonElement(input['addresses'], btc_addresses));
         const btc_is_an_output = tx['outputs'].filter(output => hasCommonElement(output['addresses'], btc_addresses));
 
-        function extract_data_from_output(output){
+        // helper functions to create a row of our ledger
+        function output_to_row(output){
             const { value, addresses } = output;            
-            return [time, +value, addresses.join(', ')];
+            return [time, +value, addresses.join(', '), 'received'];
         }
-
-        function extract_data_from_input(input){
+        function input_to_row(input){
             const { output_value, addresses } = input;        
-            return [time, -output_value, addresses.join(', ')];
+            return [time, -output_value, addresses.join(', '), 'sent'];
         }
 
         // append outputs
         btc_is_an_output.forEach(output => {     
-            values.push(extract_data_from_output(output))
+            ledger.push(output_to_row(output))
         })
 
         // append inputs
         btc_is_an_input.forEach(input => {
-            values.push(extract_data_from_input(input))
+            ledger.push(input_to_row(input))
 
             // also push outputs
             tx['outputs'].forEach(output => {
-                values.push(extract_data_from_output(output))
+                ledger.push(output_to_row(output))
             })
         })
     }
     
-    // sort in descending chronological order
-    values.sort((a, b) => b[0] - a[0]);
+    // sort the transactions in descending chronological order
+    ledger.sort((a, b) => b[0] - a[0]);
 
-    // convert date to better format
-    values = values.map(d => [date_to_month_day_year(d[0]), d[1], d[2]]);
-
-    return values;
+    // we have [ [ time, value, addresses, flag ], ... ]
+    return ledger;
 }
 
 

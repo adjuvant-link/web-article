@@ -12,6 +12,12 @@ Guiding values for the project:
     - Sustainability
 
 
+## Ledger
+
+We are seeing transactions sent to the BTC addresses listed. And we are looking at transactions made by the BTC addresses. UI should be better
+at differentiating the two. 
+
+
 ## Receiving donations
 
 ### Crypto 

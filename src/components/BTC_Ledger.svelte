@@ -9,6 +9,9 @@
     // ui lib
     import { onMount } from 'svelte';
 
+    // import date time lib
+    import { date_to_month_day_year } from '../libs/dt.js';
+
     // import btc lib
     import { btc_usd_exchange_rate, btc_addresses_lookup } from '../libs/btc.js';
 
@@ -17,46 +20,47 @@
 
     // init process variables
     let total_balance_in_usd = 0.0;
-    let donations = [];    
+    let ledger = [];   
+    
+    
+    // helper function to convert btc to usd
+    function convert_to_usd(btc_value, usd_exchange_rate){
+        return Math.round(100.0 * usd_exchange_rate * (btc_value/100000000.0))/100.0;
+    }
 
 
-    async function continuous(){
-        console.log(`INFO: Refreshing info for wallet with id ${wallet['id']}`)
+    async function update_ledger(){
+        console.log(`INFO: Refreshing donations ledger for wallet with id ${wallet['id']}`)
 
-        // get BTC to USD rate
+        // get BTC -> USD rate
         const usd_exchange_rate = await btc_usd_exchange_rate();
         if (usd_exchange_rate === undefined || usd_exchange_rate === null) return;
 
-        // func to convert
-        function convert_to_usd(btc_value){
-            return Math.round(100.0 * usd_exchange_rate * (btc_value/100000000.0))/100.0;
-        }
-
-        // get addresses info
+        // get the transaction ledger for our addresses
         const ledger = await btc_addresses_lookup(wallet['addresses']);
         if (ledger === undefined || ledger === null) return;
+        
+        // convert the ledger to USD, and make the date time more readable
+        let ledger_usd = ledger.map(d => [ date_to_month_day_year(d[0]), convert_to_usd(d[1], usd_exchange_rate), d[2], d[3] ])
+        
+        // compute the total balance
+        total_balance_in_usd = Math.round(ledger_usd.map(d => d[1]).reduce((a, b) => a + b, 0)*100.0)/100.0;
 
-        // convert to usd
-        let ledger_usd = ledger.map(d => [d[0], convert_to_usd(d[1]), d[2]])
-
-        // set balance
-        total_balance_in_usd = ledger_usd.map(d => d[1]).reduce((a, b) => a + b, 0);
-
-        // append headers
-        ledger_usd.unshift(['Time', 'Value (USD)', 'Addresses'])
+        // append the headers to our ledger
+        ledger_usd.unshift(['Date', 'Value (USD)', 'Addresses', 'Flag'])
 
         // set ledger
-        donations = ledger_usd;
+        ledger = ledger_usd;
 
         // rerun in X seconds
         setTimeout(async () => {   
-            continuous();
+            await update_ledger();
         }, 1000*BTC_REFRESH_IN_SEC);
     }
 
     // load the btc info
     onMount(() => {
-        continuous();
+        update_ledger();
     })
 
 </script>
@@ -65,8 +69,8 @@
 <!-- Donations Ledger -->
 <div class="container">
     <p class="subsubtitle" style="text-align: center; margin-bottom: 8px;">Donations</p>
-    {#if donations !== undefined && donations !== null && Array.isArray(donations) && donations.length > 1 }
-        <Table data={donations}/>
+    {#if ledger !== undefined && ledger !== null && Array.isArray(ledger) && ledger.length > 1 }
+        <Table data={ledger}/>
         <p>Total: {total_balance_in_usd} USD</p>
     {/if}
 </div>
