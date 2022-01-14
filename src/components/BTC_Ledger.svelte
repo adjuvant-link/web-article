@@ -39,7 +39,7 @@
 
     const cell_func = (cell, val, row_id, col_id) => {
         // make the "TX Hash" column clickable
-        if (col_id === 3){
+        if (+col_id === 3){
             cell.style.cursor = 'pointer';
             cell.onclick = () => {
                 swal({
