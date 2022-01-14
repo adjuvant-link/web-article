@@ -37,20 +37,20 @@
         if (usd_exchange_rate === undefined || usd_exchange_rate === null) return;
 
         // get the transaction ledger for our addresses
-        const ledger = await btc_addresses_lookup(wallet['addresses']);
-        if (ledger === undefined || ledger === null) return;
+        const ledger_in_btc = await btc_addresses_lookup(wallet['addresses']);
+        if (ledger_in_btc === undefined || ledger_in_btc === null) return;
         
         // convert the ledger to USD, and make the date time more readable
-        let ledger_usd = ledger.map(d => [ date_to_month_day_year(d[0]), convert_to_usd(d[1], usd_exchange_rate), d[2], d[3] ])
+        let ledger_in_usd = ledger_in_btc.map(d => [ date_to_month_day_year(d[0]), convert_to_usd(d[1], usd_exchange_rate), d[2], d[3] ])
         
         // compute the total balance
-        total_balance_in_usd = Math.round(ledger_usd.map(d => d[1]).reduce((a, b) => a + b, 0)*100.0)/100.0;
+        total_balance_in_usd = Math.round(ledger_in_usd.map(d => d[1]).reduce((a, b) => a + b, 0)*100.0)/100.0;
 
         // append the headers to our ledger
-        ledger_usd.unshift(['Date', 'Value (USD)', 'Addresses', 'Flag'])
+        ledger_in_usd.unshift(['Date', 'Value (USD)', 'Addresses', 'Flag'])
 
         // set ledger
-        ledger = ledger_usd;
+        ledger = ledger_in_usd;
 
         // rerun in X seconds
         setTimeout(async () => {   

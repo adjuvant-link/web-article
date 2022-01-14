@@ -17,14 +17,20 @@ const btc_forex_endpoint =  'https://blockchain.info/ticker';
 import { sleep } from './system.js';
 const sleep_time_in_ms = 1000;
 
-// import http lib
-import { getRequestWrapper } from './http.js';
-
 // API endpoints will block your IP if you send too many requests
 // we add some sleep time
-async function _getRequestWrapper(url){
+async function getRequestWrapper(url){
     await sleep(sleep_time_in_ms);
-    return await getRequestWrapper(url);
+    
+    const results = await new Promise((resolve, reject) => {
+        fetch(url, {})
+        .then(response => response.json())
+        .then(json => {
+            resolve(json);
+        })
+    })
+
+    return results;
 }
 
 
@@ -38,7 +44,7 @@ function hasCommonElement(arr1, arr2) {
 export async function btc_usd_exchange_rate(){
 
     // send GET request
-    const result = await _getRequestWrapper(btc_forex_endpoint)
+    const result = await getRequestWrapper(btc_forex_endpoint)
 
     // extract price in USD
     let usd = 0.0;
@@ -68,7 +74,7 @@ async function get_full_tx(tx_hash){
     async function get_transaction_info(_tx_hash){
 
         // send get request
-        tx = await _getRequestWrapper(btc_txs_endpoint(_tx_hash));
+        tx = await getRequestWrapper(btc_txs_endpoint(_tx_hash));
         if(tx === undefined || tx === null) return [null, null];
 
         // grab data
@@ -90,7 +96,7 @@ async function get_full_tx(tx_hash){
     async function get_transaction_info_input(url){
         
         // send get request
-        const tx_inputs_info = await _getRequestWrapper(url);
+        const tx_inputs_info = await getRequestWrapper(url);
 
         // grab data
         const { inputs, next_inputs } = tx_inputs_info;
@@ -106,7 +112,7 @@ async function get_full_tx(tx_hash){
     async function get_transaction_info_output(url){
         
         // send get request
-        const tx_outputs_info = await _getRequestWrapper(url);
+        const tx_outputs_info = await getRequestWrapper(url);
 
         // grab data
         const { outputs, next_outputs } = tx_outputs_info;
@@ -172,7 +178,7 @@ export async function btc_addresses_lookup(btc_addresses) {
     for(const btc_addr of btc_addresses){
 
         // send GET request
-        const result = await _getRequestWrapper(btc_addr_endpoint(btc_addr));
+        const result = await getRequestWrapper(btc_addr_endpoint(btc_addr));
         if(result === undefined || result === null) return;
 
         // set
@@ -277,7 +283,7 @@ export async function btc_addresses_balance_lookup(btc_addresses) {
         const url = btc_addr_balance_endpoint(btc_addr);
 
         // send GET request
-        const result = await _getRequestWrapper(url)
+        const result = await getRequestWrapper(url)
 
         try {
             balance = balance + (+result['balance'])/100000000.0;

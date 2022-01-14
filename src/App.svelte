@@ -48,7 +48,7 @@
 
         // load wallets
         wallets = await getRequestWrapper('/assets/files/wallets.json');
-        if (wallets === undefined || wallets === null) { console.error('could not load wallets'); return; };
+        if (wallets === undefined || wallets === null) { console.error('could not load wallets'); return; }
 
         // set ready flag to TRUE
         ready = true;

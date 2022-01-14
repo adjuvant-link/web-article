@@ -1,7 +1,7 @@
 <script>
 
     // load constants from json file
-    import { TITLE, DESCRIPTION, SUBDIRECTORY, AUTHOR_URL } from '../constants.json';
+    import { DESCRIPTION, SUBDIRECTORY, AUTHOR_URL } from '../constants.json';
 
     // load libs
     import { isMobile } from '../libs/system.js';

@@ -9,9 +9,6 @@
     // import libs
     import { getFormattedDateTime } from '../libs/dt.js';
 
-    // import constants
-    import { SUBDIRECTORY } from '../constants.json';
-
     // ids
     const table_id_values = `${table_id}-values`;
     const table_id_headers = `${table_id}-headers`;
@@ -41,33 +38,6 @@
             if(typeof(cell_func) === 'function'){
                 cell_func(cell, val, row_id, col_id);
             }
-        }
-    }
-
-    // download content of table
-    function download(){
-
-        // create the filename using current time
-        const filename = 'cai_' + getFormattedDateTime(0) + '.csv';
-
-        // format data
-        const _data = data.map(row => {
-            return row.map(cell => `"${cell}"`).join(',')
-        }).join('\n')
-
-        // instantiate a blob using our tabular data
-        const blob = new Blob([_data], { type: 'text/csv' })
-
-        // Prompt the user to download
-        if (window.navigator.msSaveOrOpenBlob) {
-            window.navigator.msSaveBlob(blob, filename)
-        } else {
-            const elem = window.document.createElement('a')
-            elem.href = window.URL.createObjectURL(blob)
-            elem.download = filename
-            document.body.appendChild(elem)
-            elem.click()
-            document.body.removeChild(elem)
         }
     }
 
