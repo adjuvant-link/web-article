@@ -243,7 +243,8 @@
 
     .table-headers {
         z-index: 900;
-        padding-bottom: 8px;
+        padding-bottom: 4px;
+        margin-bottom: 6px;
         background-color: transparent;
         border: 1px solid var(--black);
     }

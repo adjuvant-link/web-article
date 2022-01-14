@@ -1,15 +1,15 @@
 'use strict';
 
-// --------------- BlockCypher API endpoints ---------------
+// ---------------- BlockCypher endpoints -----------------
 // ref: https://www.blockcypher.com/dev/bitcoin/#address-api
-const btc_addr_balance_endpoint = (addr) => `https://api.blockcypher.com/v1/btc/main/addrs/${addr}/balance`;
-const btc_addr_endpoint = (addr) => `https://api.blockcypher.com/v1/btc/main/addrs/${addr}`;
-const btc_txs_endpoint = (txhash) => `https://api.blockcypher.com/v1/btc/main/txs/${txhash}?limit=50`;
+const blockcypher_addr_balance_endpoint = (addr) => `https://api.blockcypher.com/v1/btc/main/addrs/${addr}/balance`;
+const blockcypher_addr_endpoint = (addr) => `https://api.blockcypher.com/v1/btc/main/addrs/${addr}`;
+const blockcypher_txs_endpoint = (tx_hash) => `https://api.blockcypher.com/v1/btc/main/txs/${tx_hash}?limit=50`;
 
 
-// --------------- Blockchain Info endpoint ---------------
-// fiat/crypto currencies exchange rate
-const btc_forex_endpoint =  'https://blockchain.info/ticker';
+// --------------- Blockchain Info endpoints --------------
+// ref: https://www.blockchain.com/api/blockchain_api
+const btc_forex_endpoint = 'https://blockchain.info/ticker';
 
 
 // ------------------- Dependencies -----------------------
@@ -74,7 +74,7 @@ async function get_full_tx(tx_hash){
     async function get_transaction_info(_tx_hash){
 
         // send get request
-        tx = await getRequestWrapper(btc_txs_endpoint(_tx_hash));
+        tx = await getRequestWrapper(blockcypher_txs_endpoint(_tx_hash));
         if(tx === undefined || tx === null) return [null, null];
 
         // grab data
@@ -178,7 +178,7 @@ export async function btc_addresses_lookup(btc_addresses) {
     for(const btc_addr of btc_addresses){
 
         // send GET request
-        const result = await getRequestWrapper(btc_addr_endpoint(btc_addr));
+        const result = await getRequestWrapper(blockcypher_addr_endpoint(btc_addr));
         if(result === undefined || result === null) return;
 
         // set
@@ -224,9 +224,9 @@ export async function btc_addresses_lookup(btc_addresses) {
     // ----------------------------------------------------------------------
     // ----- Build a ledger with our transactions' relevant information  ----
     // ----------------------------------------------------------------------
-    let ledger = [];
+    let txs_df = [];
     for(const tx_hash of Object.keys(txs)){
-        
+
         // grab tx
         const tx = txs[tx_hash];
 
@@ -237,37 +237,23 @@ export async function btc_addresses_lookup(btc_addresses) {
         const btc_is_an_input = tx['inputs'].filter(input => hasCommonElement(input['addresses'], btc_addresses));
         const btc_is_an_output = tx['outputs'].filter(output => hasCommonElement(output['addresses'], btc_addresses));
 
-        // helper functions to create a row of our ledger
-        function output_to_row(output){
-            const { value, addresses } = output;            
-            return [time, +value, addresses.join(', '), 'received'];
+        // init datum
+        let datum = {
+            'tx_hash': tx_hash,
+            'time': time,
+            'inputs': btc_is_an_input.map(({ output_value, addresses }) => { return { output_value, addresses } }),
+            'outputs': btc_is_an_output.map(({ value, addresses }) => { return { value, addresses } }),
+            'tx': tx
         }
-        function input_to_row(input){
-            const { output_value, addresses } = input;        
-            return [time, -output_value, addresses.join(', '), 'sent'];
-        }
 
-        // append outputs
-        btc_is_an_output.forEach(output => {     
-            ledger.push(output_to_row(output))
-        })
-
-        // append inputs
-        btc_is_an_input.forEach(input => {
-            ledger.push(input_to_row(input))
-
-            // also push outputs
-            tx['outputs'].forEach(output => {
-                ledger.push(output_to_row(output))
-            })
-        })
+        // push to dataframe
+        txs_df.push(datum);
     }
     
     // sort the transactions in descending chronological order
-    ledger.sort((a, b) => b[0] - a[0]);
+    txs_df.sort((a, b) => b['time'] - a['time']);
 
-    // we have [ [ time, value, addresses, flag ], ... ]
-    return ledger;
+    return txs_df;
 }
 
 
@@ -280,7 +266,7 @@ export async function btc_addresses_balance_lookup(btc_addresses) {
     for(const btc_addr of btc_addresses){
 
         // build url
-        const url = btc_addr_balance_endpoint(btc_addr);
+        const url = blockcypher_addr_balance_endpoint(btc_addr);
 
         // send GET request
         const result = await getRequestWrapper(url)

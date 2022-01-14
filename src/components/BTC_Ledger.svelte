@@ -12,15 +12,19 @@
     // import date time lib
     import { date_to_month_day_year } from '../libs/dt.js';
 
+    // prompt lib
+    import swal from 'sweetalert'
+
     // import btc lib
-    import { btc_usd_exchange_rate, btc_addresses_lookup } from '../libs/btc.js';
+    // import { btc_usd_exchange_rate, btc_addresses_lookup } from '../libs/blockcypher.js';
+    import { btc_usd_exchange_rate, btc_addresses_lookup } from '../libs/blockchain.js';
 
     // import components
     import Table from './Table.svelte';
 
-    // init process variables
-    let total_balance_in_usd = 0.0;
-    let ledger = [];   
+    // init displayed variables
+    let balance = 0.0;
+    let table = [];   
     
     
     // helper function to convert btc to usd
@@ -28,30 +32,130 @@
         return Math.round(100.0 * usd_exchange_rate * (btc_value/100000000.0))/100.0;
     }
 
+    function shortens_known_btc_addr(full_addr){
+        return wallet['addresses'].includes(full_addr) ? `${full_addr.substring(full_addr.length - 6)}` : full_addr;
+    }
+
+
+    const cell_func = (cell, val, row_id, col_id) => {
+        // make the "TX Hash" column clickable
+        if (col_id === 3){
+            cell.style.cursor = 'pointer';
+            cell.onclick = () => {
+                swal({
+                    title: 'Explore Transaction',
+                    text: `Pressing ok will open a new tab`
+                }).then(value => {
+                    if (value) {
+                        window.open(`https://www.blockchain.com/btc/tx/${val}`, '_blank')
+                    }
+                })
+            }
+        }
+    }
+
 
     async function update_ledger(){
-        console.log(`INFO: Refreshing donations ledger for wallet with id ${wallet['id']}`)
+        console.log(`INFO: Refreshing donations table for wallet with id ${wallet['id']}`)
 
         // get BTC -> USD rate
         const usd_exchange_rate = await btc_usd_exchange_rate();
         if (usd_exchange_rate === undefined || usd_exchange_rate === null) return;
 
-        // get the transaction ledger for our addresses
-        const ledger_in_btc = await btc_addresses_lookup(wallet['addresses']);
-        if (ledger_in_btc === undefined || ledger_in_btc === null) return;
-        
-        // convert the ledger to USD, and make the date time more readable
-        let ledger_in_usd = ledger_in_btc.map(d => [ date_to_month_day_year(d[0]), convert_to_usd(d[1], usd_exchange_rate), d[2], d[3] ])
-        
-        // compute the total balance
-        total_balance_in_usd = Math.round(ledger_in_usd.map(d => d[1]).reduce((a, b) => a + b, 0)*100.0)/100.0;
+        // get the transactions for our addresses
+        const df = await btc_addresses_lookup(wallet['addresses']);
+        if (df === undefined || df === null || !Array.isArray(df) || df.length === 0) return;
+
+        // init table & balance
+        let _table = [];
+        let _balance = 0.0;
+
+        // convert to table
+        df.forEach(d => {
+
+            // grab data
+            const { time, inputs, outputs, tx_hash } = d;
+
+            // if we are an input
+            if (inputs.length > 0){
+                
+                const input_str = inputs.map(input => {
+                    
+                    // grab data
+                    const { addr, value } = input;
+
+                    // build string
+                    return shortens_known_btc_addr(addr);
+
+                }).join(', ')
+
+                outputs.forEach(output => {
+
+                    // grab data
+                    const { addr, value } = output;
+
+                    // clean
+                    let value_usd = convert_to_usd(value, usd_exchange_rate);
+                    const _addr = shortens_known_btc_addr(addr);
+
+                    // check if positive or negative
+                    value_usd = wallet['addresses'].includes(addr) ? value_usd : -value_usd;
+
+                    // push 
+                    _table.push([
+                        time, 
+                        value_usd,
+                        input_str,
+                        _addr, 
+                        tx_hash
+                    ])
+                })
+
+                return;
+            }
+
+            // if we are an output
+            if (outputs.length > 0){
+                outputs.forEach(output => {
+
+                    // grab data
+                    const { addr, value } = output;
+
+                    // clean
+                    const _addr = shortens_known_btc_addr(addr);
+                    const value_usd = convert_to_usd(value, usd_exchange_rate);
+
+                    // push 
+                    _table.push([
+                        time, 
+                        value_usd,
+                        '',
+                        _addr, 
+                        tx_hash
+                    ])
+                })
+                return;
+            }
+        });
+
+        // sort the transactions in descending chronological order
+        _table.sort((a, b) => b[0] - a[1]);
+
+        // compute balance
+        _table.forEach(d => {
+            _balance = _balance + d[1];
+        })
+
+        // remove time
+        _table = _table.map(d => [d[1], d[2], d[3], d[4]]);
 
         // append the headers to our ledger
-        ledger_in_usd.unshift(['Date', 'Value (USD)', 'Addresses', 'Flag'])
+        _table.unshift(['Value (USD)', 'Sender', 'Receiver', 'TX Hash'])
 
-        // set ledger
-        ledger = ledger_in_usd;
-
+        // set to displayed variables
+        table = _table;
+        balance = Math.round(_balance * 100.0)/100.0;
+        
         // rerun in X seconds
         setTimeout(async () => {   
             await update_ledger();
@@ -69,9 +173,9 @@
 <!-- Donations Ledger -->
 <div class="container">
     <p class="subsubtitle" style="text-align: center; margin-bottom: 8px;">Donations</p>
-    {#if ledger !== undefined && ledger !== null && Array.isArray(ledger) && ledger.length > 1 }
-        <Table data={ledger}/>
-        <p>Total: {total_balance_in_usd} USD</p>
+    {#if table !== undefined && table !== null && Array.isArray(table) && table.length > 1 }
+        <Table data={table} cell_func={cell_func}/>
+        <p>Total: {balance} USD</p>
     {/if}
 </div>
 
