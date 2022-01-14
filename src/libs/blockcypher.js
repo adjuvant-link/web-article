@@ -12,10 +12,14 @@ const blockcypher_txs_endpoint = (tx_hash) => `https://api.blockcypher.com/v1/bt
 const btc_forex_endpoint = 'https://blockchain.info/ticker';
 
 
+
 // ------------------- Dependencies -----------------------
 // import system lib
 import { sleep } from './system.js';
 const sleep_time_in_ms = 1000;
+
+// prompt lib
+import swal from 'sweetalert'
 
 // API endpoints will block your IP if you send too many requests
 // we add some sleep time
@@ -23,10 +27,18 @@ async function getRequestWrapper(url){
     await sleep(sleep_time_in_ms);
     
     const results = await new Promise((resolve, reject) => {
+
         fetch(url, {})
         .then(response => response.json())
         .then(json => {
             resolve(json);
+        })
+        .catch(() => {
+            swal({
+                title: `Error`,
+                text: `Could not reach url`
+            })
+            return reject(`could not reach ${url}`)
         })
     })
 
@@ -233,25 +245,41 @@ export async function btc_addresses_lookup(btc_addresses) {
         // grab the date when the transaction was received by the network
         const time = new Date(tx['received']);
 
-        // get inputs or outputs that mention our btc addresses
-        const btc_is_an_input = tx['inputs'].filter(input => hasCommonElement(input['addresses'], btc_addresses));
-        const btc_is_an_output = tx['outputs'].filter(output => hasCommonElement(output['addresses'], btc_addresses));
+        // clean the inputs & outputs – only keep relevant information
+        const inputs = tx['inputs'].map(input => { 
+            return {
+                'value': +input['output_value'], 
+                'addresses': input['addresses']
+            }
+        })
 
+        const outputs = tx['outputs'].map(output => {
+            return {
+                'value': +output['value'], 
+                'addresses': output['addresses']
+            }
+        });
+
+        // get inputs or outputs that mention our btc addresses
+        let m_inputs = inputs.filter(input => hasCommonElement(input['addresses'], btc_addresses));
+        let m_outputs = outputs.filter(output => hasCommonElement(output['addresses'], btc_addresses));
+
+        // if we are input, we keep track of all outputs
+        if(m_inputs.length > 0){
+            m_outputs = outputs;
+        }
+        
         // init datum
         let datum = {
             'tx_hash': tx_hash,
             'time': time,
-            'inputs': btc_is_an_input.map(({ output_value, addresses }) => { return { output_value, addresses } }),
-            'outputs': btc_is_an_output.map(({ value, addresses }) => { return { value, addresses } }),
-            'tx': tx
+            'inputs': m_inputs,
+            'outputs': m_outputs
         }
 
         // push to dataframe
         txs_df.push(datum);
     }
-    
-    // sort the transactions in descending chronological order
-    txs_df.sort((a, b) => b['time'] - a['time']);
 
     return txs_df;
 }

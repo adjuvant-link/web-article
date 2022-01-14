@@ -16,8 +16,8 @@
     import swal from 'sweetalert'
 
     // import btc lib
-    // import { btc_usd_exchange_rate, btc_addresses_lookup } from '../libs/blockcypher.js';
-    import { btc_usd_exchange_rate, btc_addresses_lookup } from '../libs/blockchain.js';
+    import { btc_usd_exchange_rate, btc_addresses_lookup } from '../libs/blockcypher.js';
+    // import { btc_usd_exchange_rate, btc_addresses_lookup } from '../libs/blockchain.js';
 
     // import components
     import Table from './Table.svelte';
@@ -76,66 +76,40 @@
             // grab data
             const { time, inputs, outputs, tx_hash } = d;
 
-            // if we are an input
-            if (inputs.length > 0){
-                
-                const input_str = inputs.map(input => {
-                    
-                    // grab data
-                    const { addr, value } = input;
+            // parse inputs
+            let inputs_str = new Set();
+            inputs.forEach(input => {
+                input['addresses'].forEach(addr => { inputs_str.add(addr) })
+            })
+            inputs_str = [...inputs_str].map(s => shortens_known_btc_addr(s)).join(', ')
 
-                    // build string
-                    return shortens_known_btc_addr(addr);
+            // push to table
+            outputs.forEach(output => {
 
-                }).join(', ')
+                // grab data
+                const { addresses, value } = output;
 
-                outputs.forEach(output => {
+                // clean
+                const value_usd = convert_to_usd(value, usd_exchange_rate);
+                const _addresses = addresses.map(addr => shortens_known_btc_addr(addr)).join(', ');
 
-                    // grab data
-                    const { addr, value } = output;
-
-                    // clean
-                    let value_usd = convert_to_usd(value, usd_exchange_rate);
-                    const _addr = shortens_known_btc_addr(addr);
-
-                    // check if positive or negative
-                    value_usd = wallet['addresses'].includes(addr) ? value_usd : -value_usd;
-
-                    // push 
-                    _table.push([
-                        time, 
-                        value_usd,
-                        input_str,
-                        _addr, 
-                        tx_hash
-                    ])
+                // check if positive or negative
+                let neg = 1;
+                addresses.forEach(addr => {
+                    if(!wallet['addresses'].includes(addr)){
+                        neg = -1;
+                    }
                 })
 
-                return;
-            }
-
-            // if we are an output
-            if (outputs.length > 0){
-                outputs.forEach(output => {
-
-                    // grab data
-                    const { addr, value } = output;
-
-                    // clean
-                    const _addr = shortens_known_btc_addr(addr);
-                    const value_usd = convert_to_usd(value, usd_exchange_rate);
-
-                    // push 
-                    _table.push([
-                        time, 
-                        value_usd,
-                        '',
-                        _addr, 
-                        tx_hash
-                    ])
-                })
-                return;
-            }
+                // push 
+                _table.push([
+                    time, 
+                    neg * value_usd,
+                    inputs.length > 0 ? inputs_str : '',
+                    _addresses, 
+                    tx_hash
+                ])
+            })
         });
 
         // sort the transactions in descending chronological order

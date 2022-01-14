@@ -12,20 +12,37 @@ const btc_forex_endpoint = 'https://blockchain.info/ticker';
 import { sleep } from './system.js';
 const sleep_time_in_ms = 1000;
 
+// prompt lib
+import swal from 'sweetalert'
+
 // API endpoints will block your IP if you send too many requests
 // we add some sleep time
 async function getRequestWrapper(url){
     await sleep(sleep_time_in_ms);
     
     const results = await new Promise((resolve, reject) => {
+
         fetch(url, {})
         .then(response => response.json())
         .then(json => {
             resolve(json);
         })
+        .catch(() => {
+            swal({
+                title: `Error`,
+                text: `Could not reach url`
+            })
+            return reject(`could not reach ${url}`)
+        })
     })
 
     return results;
+}
+
+
+// ---------------- Helper Functions ----------------------
+function hasCommonElement(arr1, arr2) {
+    return arr1.some(item => arr2.includes(item));
 }
 
 
@@ -79,13 +96,6 @@ export async function btc_addresses_lookup(btc_addresses) {
                 tx_hashes.add(tx['hash']);
             });
         }
-
-        // // push unconfirmed transactions
-        // if(unconfirmed_txrefs !== undefined && unconfirmed_txrefs !== null && Array.isArray(unconfirmed_txrefs) && unconfirmed_txrefs.length > 0){
-        //     unconfirmed_txrefs.forEach(tx => {
-        //         tx_hashes.add(tx['tx_hash']);
-        //     });
-        // }
     }
     tx_hashes = [...tx_hashes];
 
@@ -107,23 +117,28 @@ export async function btc_addresses_lookup(btc_addresses) {
 
         // grab tx
         const tx = txs[tx_hash];
-        console.log(tx);
 
         // grab the date when the transaction was received by the network
         const time = tx['time'];
 
         // clean the inputs & outputs – only keep relevant information
         const inputs = tx['inputs'].map(input => { 
-            const value = input['prev_out']['value']
-            const addr = input['prev_out']['addr'];
-            return { value, addr } 
+            return {
+                'value': +input['prev_out']['value'],
+                'addresses': [ input['prev_out']['addr'] ]
+            }
         })
 
-        const outputs = tx['out'].map(({ value, addr }) => { return { value, addr } });
+        const outputs = tx['out'].map(output => {
+            return {
+                'value': +output['value'], 
+                'addresses': [ output['addr'] ]
+            }
+        });
 
         // get inputs or outputs that mention our btc addresses
-        let m_inputs = inputs.filter(input => btc_addresses.includes(input['addr']));
-        let m_outputs = outputs.filter(output => btc_addresses.includes(output['addr']));
+        let m_inputs = inputs.filter(input => hasCommonElement(input['addresses'], btc_addresses));
+        let m_outputs = outputs.filter(output => hasCommonElement(output['addresses'], btc_addresses));
 
         // if we are input, we keep track of all outputs
         if(m_inputs.length > 0){
