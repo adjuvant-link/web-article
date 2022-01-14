@@ -10,9 +10,12 @@ const btc_forex_endpoint =  'https://blockchain.info/ticker';
 // import http lib
 import { getRequestWrapper } from './http.js';
 
+// import datetime lib
+import { date_to_month_day_year } from './dt.js';
+
 // import system lib
 import { sleep } from './system.js';
-const sleep_time_in_ms = 500;
+const sleep_time_in_ms = 1000;
 
 // add sleep to get request
 async function _getRequestWrapper(url){
@@ -54,6 +57,7 @@ async function get_full_transaction(tx_hash){
 
         // send get request
         tx = await _getRequestWrapper(btc_txs_endpoint(_tx_hash));
+        if(tx === undefined || tx === null) return [null, null];
 
         // grab data
         const { inputs, outputs, next_inputs, next_outputs } = tx;
@@ -200,41 +204,58 @@ export async function btc_addresses_lookup(btc_addresses) {
     }    
 
 
-    // --- Filter ---
+    // ----------------------------------------------------------------------
+    // -------------------- Extract transaction values ----------------------
+    // ----------------------------------------------------------------------
+    let values = [];
     for(const tx_hash of Object.keys(txs)){
         
         // grab tx
         const tx = txs[tx_hash];
 
-        // check if our btc addresses are the input to the transction
-        const btc_is_an_input = tx['inputs'].filter(input => hasCommonElement(input['addresses'], btc_addresses)).length > 0;
+        // grab data
+        const { received } = tx;
 
-        if(btc_is_an_input){
-            console.log("AS INPUT")
-            console.log(tx);
+        // convert to date
+        const time = new Date(received);
+
+        // get inputs or outputs that mention our btc addresses
+        const btc_is_an_input = tx['inputs'].filter(input => hasCommonElement(input['addresses'], btc_addresses));
+        const btc_is_an_output = tx['outputs'].filter(output => hasCommonElement(output['addresses'], btc_addresses));
+
+        function extract_data_from_output(output){
+            const { value, addresses } = output;            
+            return [time, +value, addresses.join(', ')];
         }
+
+        function extract_data_from_input(input){
+            const { output_value, addresses } = input;        
+            return [time, -output_value, addresses.join(', ')];
+        }
+
+        // append outputs
+        btc_is_an_output.forEach(output => {     
+            values.push(extract_data_from_output(output))
+        })
+
+        // append inputs
+        btc_is_an_input.forEach(input => {
+            values.push(extract_data_from_input(input))
+
+            // also push outputs
+            tx['outputs'].forEach(output => {
+                values.push(extract_data_from_output(output))
+            })
+        })
     }
+    
+    // sort in descending chronological order
+    values.sort((a, b) => b[0] - a[0]);
 
-    // ----------------------------------------------------------------------
-    // ----------------------- Build the ledger -----------------------------
-    // ----------------------------------------------------------------------
-   
+    // convert date to better format
+    values = values.map(d => [date_to_month_day_year(d[0]), d[1], d[2]]);
 
-    // // --- filter inputs & outputs ---
-    // let m_inputs = all_inputs.filter(input => )
-    // let m_outputs = all_outputs.filter(output => hasCommonElement(output['addresses'], btc_addresses))
-
-    // // --- clean ---
-    // m_inputs = m_inputs.map(({ addresses, output_value }) => { return { addresses, output_value } });
-    // m_outputs = m_outputs.map(({ addresses, value }) => { return { addresses, value } });
-
-
-    // return {
-    //     'inputs': m_inputs,
-    //     'outputs': m_outputs
-    // }
-
-    return results;
+    return values;
 }
 
 

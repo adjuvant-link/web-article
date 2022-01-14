@@ -43,7 +43,7 @@ export function getFormattedDateTime(extra_seconds) {
 }
 
 
-export function date_to_month_year(date){
+export function date_to_month_day_year(date){
 
     // months
     const monthNames = ["January", "February", "March", "April", "May", "June",
@@ -53,5 +53,5 @@ export function date_to_month_year(date){
     let month = monthNames[(date.getMonth() + 1) - 1];   // JavaScript months are 0-based.
     let year = String(date.getFullYear());
 
-    return `${month}, ${year}`;
+    return `${month} ${date.getDate()}, ${year}`;
 }

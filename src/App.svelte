@@ -200,4 +200,43 @@
         scroll-snap-type: y mandatory;
     }
 
+
+    /* --- Prompt (sweet alert) --- */
+    :global(.swal-footer){
+        text-align: center;
+    }
+
+    :global(.swal-button){
+        background-color: var(--black-light);
+        border-width: 0px;
+        border: 1px solid var(--white);
+        box-shadow: none;
+    }
+
+    :global(.swal-button:focus){
+        box-shadow: none;
+    }
+
+    :global(.swal-button:not([disabled]):hover){
+        background-color: var(--black-very-light);
+    }
+
+    :global(.swal-modal) {
+        background-color: var(--black);
+        border-width: 0px;
+        border: 1px solid var(--white);
+    }
+
+    :global(.swal-title){
+        color: var(--white);
+        margin: 0px;
+        padding: 0px;
+    }
+
+    :global(.swal-text){
+        color: var(--white);
+        margin: 0px;
+        padding: 0px;
+    }
+
 </style>

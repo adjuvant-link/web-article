@@ -20,10 +20,8 @@
     let donations = [];    
 
 
-    async function get_donations_ledger(){
-
-        // reset
-        let total_balance_in_btc = 0.0;
+    async function continuous(){
+        console.log(`INFO: Refreshing info for wallet with id ${wallet['id']}`)
 
         // get BTC to USD rate
         const usd_exchange_rate = await btc_usd_exchange_rate();
@@ -31,60 +29,24 @@
 
         // func to convert
         function convert_to_usd(btc_value){
-            return Math.round(100.0 * usd_exchange_rate * btc_value)/100.0;
+            return Math.round(100.0 * usd_exchange_rate * (btc_value/100000000.0))/100.0;
         }
 
         // get addresses info
-        const btc_addr_info = await btc_addresses_lookup(wallet['addresses']);
-        if (btc_addr_info === undefined || btc_addr_info === null) return;
+        const ledger = await btc_addresses_lookup(wallet['addresses']);
+        if (ledger === undefined || ledger === null) return;
 
-        // build the donations table
-        let _donations = [];
-        Object.keys(btc_addr_info).forEach(addr_info => {
+        // convert to usd
+        let ledger_usd = ledger.map(d => [d[0], convert_to_usd(d[1]), d[2]])
 
-            // grab data
-            const { balance, txs } = btc_addr_info[addr_info];
+        // set balance
+        total_balance_in_usd = ledger_usd.map(d => d[1]).reduce((a, b) => a + b, 0);
 
-            // accumulate balance
-            total_balance_in_btc = total_balance_in_btc + balance;
+        // append headers
+        ledger_usd.unshift(['Time', 'Value (USD)', 'Addresses'])
 
-            // go through transactions
-            txs.forEach(tx => {
-
-                // compute value in USD
-                const value = convert_to_usd(+tx['value']);
-
-                // build table row
-                const datum = [
-                    tx['tx_hash'], 
-                    value.toLocaleString(),
-                    tx['spent'] === undefined ? 'N/A' : tx['spent'],
-                    tx['confirmed']
-                ]
-
-                // push to table
-                _donations.push(datum);
-            })
-        })
-
-        // add headers
-        _donations.unshift(['TX Hash', 'Value (USD)', 'Spent', 'Confirmed'])
-
-        // convert total balance
-        total_balance_in_usd = convert_to_usd(total_balance_in_btc).toLocaleString();
-
-        return [total_balance_in_usd, _donations];
-    }
-
-    async function continuous(){
-        console.log(`INFO: Refreshing info for wallet with id ${wallet['id']}`)
-
-        // run
-        const [balance, _donations] = await get_donations_ledger();   
-
-        // set
-        total_balance_in_usd = balance;
-        donations = _donations;
+        // set ledger
+        donations = ledger_usd;
 
         // rerun in X seconds
         setTimeout(async () => {   
